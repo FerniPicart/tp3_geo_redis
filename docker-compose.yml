@@ -18,7 +18,7 @@ services:
     depends_on:
       - redis
     volumes:
-      - ./backend:/app
+      - ./backend:/app  
 
   frontend:
     build: ./frontend
@@ -27,8 +27,6 @@ services:
       - "3000:3000"
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
 
 volumes:
   redis_data:
