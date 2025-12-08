@@ -1,44 +1,89 @@
 import redis
-from config import REDIS_HOST, REDIS_PORT
+from config import REDIS_HOST, REDIS_PORT, REDIS_DB
 
 class RedisService:
     def __init__(self):
         self.client = redis.Redis(
             host=REDIS_HOST,
             port=REDIS_PORT,
+            db=REDIS_DB,
             decode_responses=True
         )
 
-    def agregar_lugar(self, grupo: str, nombre: str, lat: float, lon: float):
+    def agregar_lugar(self, grupo: str, nombre: str, lat: float, lon: float) -> bool:
+        """
+        Agrega (o actualiza) un punto geoespacial en Redis.
+        Redis espera el formato { member: (longitude, latitude) }.
+        Devuelve True si la operación fue ejecutada (no necesariamente insertó un nuevo miembro).
+        """
+        key = f"geo:{grupo}"
         try:
-            self.client.geoadd(grupo, lon, lat, nombre)
+            # NOTE: redis-py espera {member: (lon, lat)}
+            self.client.geoadd(key, {nombre: (lon, lat)})
             return True
         except Exception as e:
-            print("Error:", e)
+            print("redis.geoadd error:", e)
             return False
-        
-    def obtener_cercanos(self, grupo: str, lat: float, lon: float, radio_km=5):
+
+    def obtener_cercanos(self, grupo: str, lat: float, lon: float, radio_km: float = 5):
+        """
+        Devuelve una lista de resultados desde Redis con distancias y coordenadas.
+        Uso de GEORADIUS para compatibilidad amplia.
+        Resultado típico por elemento: (member, distance, (lon, lat)) o (member, distance)
+        """
+        key = f"geo:{grupo}"
         try:
-            return self.client.georadius(
-                grupo,
+            # georadius: key, longitude, latitude, radius, unit
+            res = self.client.georadius(
+                key,
                 lon,
                 lat,
                 radio_km,
                 unit="km",
-                withdist=True
+                withdist=True,
+                withcoord=True
             )
-        except Exception:
+            return res  # lista (member, dist, (lon, lat))
+        except Exception as e:
+            print("redis.georadius error:", e)
             return []
-        
+
     def distancia(self, grupo: str, nombre: str, lat: float, lon: float):
-        # Guardar coordenada temporal del usuario
-        self.client.geoadd("pos_usuario", lon, lat, "usuario_temp")
+        """
+        Calcula la distancia (km) entre un miembro existente y las coordenadas del usuario.
+        Estrategia: añadir temporalmente un miembro "__usuario_temp__" en el mismo key,
+        pedir GEODIST entre el miembro y este temporal, y luego eliminarlo.
+        Devuelve float (km) o None si no existe el miembro.
+        """
+        key = f"geo:{grupo}"
+        tmp_member = "__usuario_temp__"
+        try:
+            # Agregar temporalmente el miembro del usuario (lon, lat)
+            self.client.geoadd(key, {tmp_member: (lon, lat)})
 
-        dist = self.client.geodist(grupo, nombre, "usuario_temp", unit="km")
+            # Calcular distancia entre el miembro y el temporal
+            dist = self.client.geodist(key, nombre, tmp_member, unit="km")
 
-        # Borrar coordenada temporal
-        self.client.zrem("pos_usuario", "usuario_temp")
+            # Eliminar temporal
+            try:
+                self.client.zrem(key, tmp_member)
+            except Exception:
+                # si falla el borrado, no queremos que rompa la respuesta
+                pass
 
-        return dist
+            if dist is None:
+                return None
 
+            # geodist puede devolver string/float; aseguramos float
+            return float(dist)
+        except Exception as e:
+            print("redis.geodist error:", e)
+            # intentar limpiar por si quedó el temp
+            try:
+                self.client.zrem(key, tmp_member)
+            except Exception:
+                pass
+            return None
+
+# instancia singleton para importar
 redis_service = RedisService()
