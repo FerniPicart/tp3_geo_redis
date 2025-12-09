@@ -9,19 +9,37 @@ export default function Distancia() {
   const [respuesta, setRespuesta] = useState("");
 
   const calcular = async () => {
-    const res = await fetch("http://localhost:8000/lugares/distancia", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        grupo,
-        nombre,
-        lat_usuario: Number(lat),
-        lon_usuario: Number(lon)
-      })
-    });
+  const latNum = parseFloat(lat);
+  const lonNum = parseFloat(lon);
+  
+  if (isNaN(latNum) || isNaN(lonNum)) {
+    setRespuesta(JSON.stringify({error: "Coordenadas inválidas"}, null, 2));
+    return;
+  }
 
-    setRespuesta(JSON.stringify(await res.json(), null, 2));
-  };
+  if (latNum < -90 || latNum > 90 || lonNum < -180 || lonNum > 180) {
+    setRespuesta(JSON.stringify({error: "Coordenadas fuera de rango válido"}, null, 2));
+    return;
+  }
+
+  if (! nombre.trim()) {
+    setRespuesta(JSON.stringify({error: "El nombre es requerido"}, null, 2));
+    return;
+  }
+
+  const res = await fetch("http://localhost:8000/lugares/distancia", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      grupo,
+      nombre,
+      lat_usuario: latNum,
+      lon_usuario: lonNum
+    })
+  });
+
+  setRespuesta(JSON.stringify(await res. json(), null, 2));
+};
 
   return (
     <div className="p-6 max-w-md mx-auto">

@@ -18,6 +18,23 @@ export default function Agregar() {
       return;
     }
 
+    // Validar rangos geográficos
+    if (latNum < -90 || latNum > 90) {
+      setRespuesta(JSON.stringify({error: "Latitud debe estar entre -90 y 90 grados"}, null, 2));
+      return;
+    }
+
+    if (lonNum < -180 || lonNum > 180) {
+      setRespuesta(JSON.stringify({error: "Longitud debe estar entre -180 y 180 grados"}, null, 2));
+      return;
+    }
+
+    // Validar que el nombre no esté vacío
+    if (! nombre.trim()) {
+      setRespuesta(JSON.stringify({error: "El nombre es requerido"}, null, 2));
+      return;
+    }
+
     const res = await fetch("http://localhost:8000/lugares/agregar", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
@@ -49,10 +66,12 @@ export default function Agregar() {
       <FormInput label="Nombre" value={nombre} onChange={setNombre} />
       
       <div className="mb-4">
-        <label className="font-semibold">Latitud</label>
+        <label className="font-semibold">Latitud (-90 a 90)</label>
         <input
           type="number"
           step="any"
+          min="-90"
+          max="90"
           className="border p-2 rounded w-full"
           value={lat}
           onChange={(e) => setLat(e.target.value)}
@@ -61,10 +80,12 @@ export default function Agregar() {
       </div>
 
       <div className="mb-4">
-        <label className="font-semibold">Longitud</label>
+        <label className="font-semibold">Longitud (-180 a 180)</label>
         <input
           type="number"
           step="any"
+          min="-180"
+          max="180"
           className="border p-2 rounded w-full"
           value={lon}
           onChange={(e) => setLon(e.target.value)}

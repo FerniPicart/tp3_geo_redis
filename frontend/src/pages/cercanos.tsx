@@ -7,15 +7,28 @@ export default function Cercanos() {
   const [lon, setLon] = useState("");
   const [respuesta, setRespuesta] = useState("");
 
-  const buscar = async () => {
-    const res = await fetch("http://localhost:8000/lugares/cercanos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ grupo, lat: Number(lat), lon: Number(lon) })
-    });
+ const buscar = async () => {
+  const latNum = parseFloat(lat);
+  const lonNum = parseFloat(lon);
+  
+  if (isNaN(latNum) || isNaN(lonNum)) {
+    setRespuesta(JSON.stringify({error: "Coordenadas inválidas"}, null, 2));
+    return;
+  }
 
-    setRespuesta(JSON.stringify(await res.json(), null, 2));
-  };
+  if (latNum < -90 || latNum > 90 || lonNum < -180 || lonNum > 180) {
+    setRespuesta(JSON. stringify({error: "Coordenadas fuera de rango válido"}, null, 2));
+    return;
+  }
+
+  const res = await fetch("http://localhost:8000/lugares/cercanos", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON. stringify({ grupo, lat: latNum, lon:  lonNum })
+  });
+
+  setRespuesta(JSON.stringify(await res.json(), null, 2));
+};
 
   return (
     <div className="p-6 max-w-md mx-auto">
