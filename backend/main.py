@@ -35,4 +35,5 @@ def obtener_todos():
         data = redis_service.obtener_todos_los_lugares()
         return data
     except Exception as e: 
-        raise HTTPException(status_code=500, detail=f"Error al obtener lugares: {str(e)}")
+        print(f"Error al obtener lugares: {e}")
+        raise HTTPException(status_code=500, detail="Error al obtener lugares de la base de datos")
