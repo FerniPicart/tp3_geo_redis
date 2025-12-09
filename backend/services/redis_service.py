@@ -18,8 +18,8 @@ class RedisService:
         """
         key = f"geo:{grupo}"
         try:
-            # NOTE: redis-py espera {member: (lon, lat)}
-            self.client.geoadd(key, {nombre: (lon, lat)})
+            # NOTE: redis-py espera (lon, lat, member)
+            self.client.geoadd(key, lon, lat, nombre)
             return True
         except Exception as e:
             print("redis.geoadd error:", e)
@@ -59,7 +59,7 @@ class RedisService:
         tmp_member = "__usuario_temp__"
         try:
             # Agregar temporalmente el miembro del usuario (lon, lat)
-            self.client.geoadd(key, {tmp_member: (lon, lat)})
+            self.client.geoadd(key, lon, lat, tmp_member)
 
             # Calcular distancia entre el miembro y el temporal
             dist = self.client.geodist(key, nombre, tmp_member, unit="km")
