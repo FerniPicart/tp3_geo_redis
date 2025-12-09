@@ -18,10 +18,10 @@ class RedisService:
         """
         key = f"geo:{grupo}"
         try:
-            # Formato correcto: geoadd(key, longitude, latitude, member)
-            self.client.geoadd(key, lon, lat, nombre)
+            # Usar execute_command directamente para evitar el bug de redis-py
+            self.client. execute_command('GEOADD', key, lon, lat, nombre)
             return True
-        except Exception as e:
+        except Exception as e: 
             print("redis. geoadd error:", e)
             return False
 
@@ -44,11 +44,11 @@ class RedisService:
                 withcoord=True
             )
             return res  # lista (member, dist, (lon, lat))
-        except Exception as e:
+        except Exception as e: 
             print("redis.georadius error:", e)
             return []
 
-    def distancia(self, grupo:  str, nombre: str, lat: float, lon: float):
+    def distancia(self, grupo: str, nombre: str, lat: float, lon: float):
         """
         Calcula la distancia (km) entre un miembro existente y las coordenadas del usuario.
         Estrategia: añadir temporalmente un miembro "__usuario_temp__" en el mismo key,
@@ -58,14 +58,14 @@ class RedisService:
         key = f"geo:{grupo}"
         tmp_member = "__usuario_temp__"
         try:
-            # Agregar temporalmente el miembro del usuario (lon, lat)
-            self.client.geoadd(key, lon, lat, tmp_member)
+            # Usar execute_command para evitar el bug
+            self.client.execute_command('GEOADD', key, lon, lat, tmp_member)
 
             # Calcular distancia entre el miembro y el temporal
             dist = self.client.geodist(key, nombre, tmp_member, unit="km")
 
             # Eliminar temporal
-            try:
+            try: 
                 self.client.zrem(key, tmp_member)
             except Exception:
                 # si falla el borrado, no queremos que rompa la respuesta
@@ -80,7 +80,7 @@ class RedisService:
             print("redis.geodist error:", e)
             # intentar limpiar por si quedó el temp
             try:
-                self. client.zrem(key, tmp_member)
+                self.client. zrem(key, tmp_member)
             except Exception: 
                 pass
             return None
