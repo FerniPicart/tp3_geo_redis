@@ -16,7 +16,7 @@ export default function Home() {
         </div>
 
         {/* Action Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl w-full">
           {/* Agregar Lugar Card */}
           <Link href="/agregar">
             <div className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 p-8 border-t-4 border-blue-500 cursor-pointer">
@@ -69,6 +69,25 @@ export default function Home() {
               </p>
               <div className="flex items-center text-purple-600 font-semibold">
                 Calcular
+                <span className="ml-2 group-hover:translate-x-2 transition-transform duration-300">→</span>
+              </div>
+            </div>
+          </Link>
+
+          {/* Ver Base de Datos Card */}
+          <Link href="/visualizar">
+            <div className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 p-8 border-t-4 border-orange-500 cursor-pointer">
+              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                🗄️
+              </div>
+              <h2 className="text-2xl font-bold text-orange-600 mb-3">
+                Ver Base de Datos
+              </h2>
+              <p className="text-gray-600 mb-4">
+                Visualiza todos los lugares guardados
+              </p>
+              <div className="flex items-center text-orange-600 font-semibold">
+                Explorar
                 <span className="ml-2 group-hover:translate-x-2 transition-transform duration-300">→</span>
               </div>
             </div>
