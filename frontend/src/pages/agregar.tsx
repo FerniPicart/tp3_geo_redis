@@ -9,10 +9,19 @@ export default function Agregar() {
   const [respuesta, setRespuesta] = useState("");
 
   const enviar = async () => {
+    // Validar que lat y lon sean números válidos
+    const latNum = parseFloat(lat);
+    const lonNum = parseFloat(lon);
+    
+    if (isNaN(latNum) || isNaN(lonNum)) {
+      setRespuesta(JSON.stringify({error: "Latitud y Longitud deben ser números válidos"}, null, 2));
+      return;
+    }
+
     const res = await fetch("http://localhost:8000/lugares/agregar", {
-      method: "POST",
+      method:  "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ grupo, nombre, lat: Number(lat), lon: Number(lon) })
+      body: JSON.stringify({ grupo, nombre, lat: latNum, lon: lonNum })
     });
 
     setRespuesta(JSON.stringify(await res.json(), null, 2));
@@ -27,7 +36,7 @@ export default function Agregar() {
         <select
           className="border p-2 rounded w-full mb-4"
           value={grupo}
-          onChange={(e) => setGrupo(e.target.value)}
+          onChange={(e) => setGrupo(e.target. value)}
         >
           <option value="cervecerias">Cervecerías</option>
           <option value="universidades">Universidades</option>
@@ -38,9 +47,30 @@ export default function Agregar() {
       </div>
 
       <FormInput label="Nombre" value={nombre} onChange={setNombre} />
-      <FormInput label="Latitud" value={lat} onChange={setLat} />
-      <FormInput label="Longitud" value={lon} onChange={setLon} />
+      
+      <div className="mb-4">
+        <label className="font-semibold">Latitud</label>
+        <input
+          type="number"
+          step="any"
+          className="border p-2 rounded w-full"
+          value={lat}
+          onChange={(e) => setLat(e.target.value)}
+          placeholder="-32.48"
+        />
+      </div>
 
+      <div className="mb-4">
+        <label className="font-semibold">Longitud</label>
+        <input
+          type="number"
+          step="any"
+          className="border p-2 rounded w-full"
+          value={lon}
+          onChange={(e) => setLon(e.target.value)}
+          placeholder="-58.24"
+        />
+      </div>
 
       <button
         onClick={enviar}
