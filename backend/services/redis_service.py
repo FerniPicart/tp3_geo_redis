@@ -13,7 +13,7 @@ class RedisService:
     def agregar_lugar(self, grupo: str, nombre: str, lat: float, lon: float) -> bool:
         """
         Agrega (o actualiza) un punto geoespacial en Redis.
-        Redis espera el formato { member: (longitude, latitude) }.
+        Redis espera el formato geoadd(key, longitude, latitude, member).
         Devuelve True si la operación fue ejecutada (no necesariamente insertó un nuevo miembro).
         """
         key = f"geo:{grupo}"
