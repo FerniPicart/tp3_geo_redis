@@ -53,4 +53,8 @@ htmlcov/
 .mypy_cache/
 .pytest_cache/
 
+# --- Node / Next.js ---
 node_modules/
+.next/
+out/
+.vercel
