@@ -85,5 +85,47 @@ class RedisService:
                 pass
             return None
 
+    def obtener_todos_los_lugares(self):
+        """
+        Obtiene todos los lugares agrupados por categoría. 
+        Retorna un diccionario con la estructura:
+        {
+            "grupo1": [{"nombre": "x", "lat": y, "lon": z}, ...],
+            "grupo2": [...]
+        }
+        """
+        try:
+            # Grupos conocidos (puedes agregar más)
+            grupos = ["cervecerias", "universidades", "farmacias", "emergencias", "supermercados"]
+            resultado = {}
+            total = 0
+            
+            for grupo in grupos:
+                key = f"geo:{grupo}"
+                # Usar ZRANGE para obtener todos los miembros del sorted set
+                miembros = self.client.zrange(key, 0, -1)
+                
+                if miembros:
+                    lugares = []
+                    for miembro in miembros:
+                        # Obtener las coordenadas de cada miembro
+                        coords = self.client.geopos(key, miembro)
+                        if coords and coords[0]:
+                            lon, lat = coords[0]
+                            lugares.append({
+                                "nombre": miembro,
+                                "lat": float(lat),
+                                "lon": float(lon)
+                            })
+                    
+                    if lugares:
+                        resultado[grupo] = lugares
+                        total += len(lugares)
+            
+            return {"grupos": resultado, "total": total}
+        except Exception as e:
+            print(f"Error obteniendo todos los lugares: {e}")
+            return {"grupos": {}, "total": 0}
+
 # instancia singleton para importar
 redis_service = RedisService()
